@@ -32,7 +32,6 @@ async function Article({ id }: { id: string }) {
 export default async function ArticlePage({ params }: ArticlePageProps) {
     const { id } = await params;
 
-
     return (
         <Suspense fallback={<></>}>
             <Article id={id} />
