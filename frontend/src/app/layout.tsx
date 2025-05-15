@@ -1,6 +1,7 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import 'katex/dist/katex.min.css';
+import AdryFooter from "@/components/footer";
 
 
 const geistSans = Geist({
@@ -23,7 +24,10 @@ export default function RootLayout({
       <body>
         <div className="mx-auto w-full px-6 xs:px-7 sm:px-10 max-w-screen-md mt-9">
           {children}
+
         </div>
+        <AdryFooter />
+
       </body>
     </html>
   );

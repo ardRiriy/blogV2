@@ -1,6 +1,7 @@
 import FadeIn from "@/components/fadein";
 import MarkdownRenderer from "@/components/MarkdownRenderer";
 import { getArticle } from "@/lib/api";
+import Link from "next/link";
 import { Suspense } from "react";
 
 interface ArticlePageProps {
@@ -35,6 +36,11 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
     return (
         <Suspense fallback={<></>}>
             <Article id={id} />
+            <Link href={'/list'}>
+                <div className="text-center text-5 mt-20 text-gray-400">
+                    記事一覧へ
+                </div>
+            </Link>
         </Suspense>
     )
 }
