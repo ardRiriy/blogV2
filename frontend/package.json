@@ -29,7 +29,9 @@
     "remark-rehype": "^11.1.2",
     "stringify": "^5.2.0",
     "tailwind-merge": "^3.3.0",
-    "unified": "^11.0.5"
+    "unified": "^11.0.5",
+    "unist": "^0.0.1",
+    "unist-util-visit": "^5.0.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
@@ -40,6 +42,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/react-syntax-highlighter": "^15.5.13",
+    "@types/unist": "^3.0.3",
     "eslint": "^9",
     "eslint-config-next": "15.3.2",
     "tailwindcss": "^4",
