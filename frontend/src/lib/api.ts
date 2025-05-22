@@ -6,58 +6,30 @@ export interface Article {
     date: string;
 }
 
-export function getArticle(id: string): Promise<Article> {
-    // mockする
+export async function getArticle(id: string): Promise<Article> {
+    const res = await fetch(`${process.env.BACKEND_URL}/article/${id}`, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        }
+    });
+    if (!res.ok) {
+        throw new Error('Failed to fetch article');
+    }
+    console.log(res);
+    const data = await res.json();
     return new Promise((resolve) => {
         setTimeout(() => {
             resolve({
-                id,
-                title: `Article ${id}`,
-                content: `
-## This is a markdown content.
-
-### This is a subheading
-
-- This is a list item
-- This is a list item
-- This is a list item
-
-> This is a blockquote
-
-[https://example.com](https://example.com)
-
-<!-- This is a comment -->
-\`\`\`js
-console.log('Hello, world!');
-\`\`\`
-\`\`\`python
-print('Hello, world!')
-\`\`\`
-
-$e=mc^2$
-
-$$
-\\sum_{i=1}^n i = \\frac{n(n+1)}{2} 
-$$
-
----
-
-
-footnotes are supported![^1]
-
-[^1]: This is a footnote
-
-This is a footnote[^2]
-[^2]: This is a footnote too
-
-This is a horizontal rule
-This is a paragraph with **bold** and *italic* text.
-
-`,
-                date: new Date().toISOString(),
+                id: id,
+                title: data.title,
+                content: data.content,
+                date: data.updated_at
             });
         }, 1000);
     });
+
 }
 
 export interface ArticleList {
