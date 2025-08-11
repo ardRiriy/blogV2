@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS Articles (
     title TEXT NOT NULL,
     content TEXT NOT NULL,
     url_suffix TEXT NOT NULL UNIQUE,
-    tags TEXT NOT NULL,
+    tags TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 )
