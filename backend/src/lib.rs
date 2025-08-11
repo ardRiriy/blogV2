@@ -32,22 +32,17 @@ struct ArticleSummary {
 
 
 #[event(fetch)]
-async fn fetch(req: Request, env: Env, ctx: Context) -> Result<Response> {
+async fn fetch(req: Request, env: Env, _ctx: Context) -> Result<Response> {
     console_error_panic_hook::set_once();
     
     let router = Router::new();
     
     router
-        .get_async("/", root)
         .get_async("/articles/:url_suffix", get_article_by_url_suffix)
         .get_async("/articles", get_articles_list)
         .post_async("/articles", save_article)
         .run(req, env)
         .await
-}
-
-pub async fn root(_req: Request, _ctx: RouteContext<()>) -> Result<Response> {
-    Response::ok("Hello Axum!aaa")
 }
 
 pub async fn get_article_by_url_suffix(_req: Request, ctx: RouteContext<()>) -> Result<Response> {
@@ -101,7 +96,7 @@ pub async fn get_articles_list(req: Request, ctx: RouteContext<()>) -> Result<Re
     let statement = d1.prepare(
         "SELECT id, title, url_suffix, tags, created_at, updated_at 
          FROM Articles 
-         ORDER BY created_at DESC 
+         ORDER BY updated_at DESC 
          LIMIT 20 OFFSET ?"
     );
     let results = statement.bind(&[offset.into()])?.all().await?;
@@ -144,8 +139,23 @@ struct SaveArticleRequest {
 }
 
 pub async fn save_article(mut req: Request, ctx: RouteContext<()>) -> Result<Response> {
-    let article_request: SaveArticleRequest = req.json().await?;
+    let token = match ctx.env.secret("TOKEN") {
+        Ok(token) => token.to_string(),
+        Err(_) => return Response::error("Internal Server Error", 500),
+    };
     
+    let auth = match req.headers().get("Authorization") {
+        Ok(Some(value)) => value,
+        _ => return Response::error("Unauthorized", 401),
+    };
+
+    let auth_token = auth.trim_start_matches("Bearer ");
+    if auth_token != token {
+        return Response::error("Unauthorized", 401);
+    }
+
+    let article_request: SaveArticleRequest = req.json().await?;
+ 
     console_log!("Saving article: {:?}", article_request);
     
     // tagsを配列から,区切り文字列に変換

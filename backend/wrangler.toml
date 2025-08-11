@@ -9,3 +9,7 @@ command = "cargo install -q worker-build && worker-build --release"
 binding = "DB"
 database_name = "blog"
 database_id = "2ca2406e-ce38-498c-a21c-b5efdb51d937"
+
+[observability.logs]
+enabled = true
+

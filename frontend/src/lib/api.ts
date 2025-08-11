@@ -39,7 +39,12 @@ export interface ArticleList {
     date: string;
 }
 
-export async function getArticleList(page: number): Promise<ArticleList[]> {
+export interface Infomations {
+    articles: ArticleList[];
+    total_pages: number;
+}
+
+export async function getArticleList(page: number): Promise<Infomations> {
     const res = await fetch(`${process.env.BACKEND_URL}/articles?page=${page}`, {
         method: 'GET',
         headers: {
@@ -51,17 +56,20 @@ export async function getArticleList(page: number): Promise<ArticleList[]> {
         throw new Error('Failed to fetch article list');
     }
     const data = await res.json();
-    console.log(data);
+
     return new Promise((resolve) => {
         setTimeout(() => {
-            resolve(data.articles.map((elm: any) => {
-                return {
-                    id: elm.id,
+            resolve({
+                articles: data.articles.map((elm: any) => {
+                    return {
+                        id: elm.id,
                     title: elm.title,
                     url: elm.url_suffix,
                     date: elm.updated_at
                 }
-            }));
-        }, 1000);
-    });
+            }),
+            total_pages: data.total_pages
+        });
+    }, 1000);
+});
 }
