@@ -7,7 +7,7 @@ export interface Article {
 }
 
 export async function getArticle(id: string): Promise<Article> {
-    const res = await fetch(`${process.env.BACKEND_URL}/article/${id}`, {
+    const res = await fetch(`${process.env.BACKEND_URL}/articles/${id}`, {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',
@@ -24,7 +24,7 @@ export async function getArticle(id: string): Promise<Article> {
             resolve({
                 id: id,
                 title: data.title,
-                content: data.content,
+                content: data.content.replace(/\\n/g, '\n'),
                 date: data.updated_at
             });
         }, 1000);
@@ -40,7 +40,7 @@ export interface ArticleList {
 }
 
 export async function getArticleList(page: number): Promise<ArticleList[]> {
-    const res = await fetch(`${process.env.BACKEND_URL}/list?page=${page}`, {
+    const res = await fetch(`${process.env.BACKEND_URL}/articles?page=${page}`, {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',
@@ -51,13 +51,14 @@ export async function getArticleList(page: number): Promise<ArticleList[]> {
         throw new Error('Failed to fetch article list');
     }
     const data = await res.json();
+    console.log(data);
     return new Promise((resolve) => {
         setTimeout(() => {
-            resolve(data.map((elm: any) => {
+            resolve(data.articles.map((elm: any) => {
                 return {
                     id: elm.id,
                     title: elm.title,
-                    url: elm.url_prefix,
+                    url: elm.url_suffix,
                     date: elm.updated_at
                 }
             }));

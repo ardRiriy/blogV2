@@ -1,17 +1,12 @@
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, M_PLUS_Rounded_1c  } from "next/font/google";
 import "./globals.css";
 import 'katex/dist/katex.min.css';
 import AdryFooter from "@/components/footer";
 
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const mPlusRounded1c = M_PLUS_Rounded_1c ({
   subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+  display: 'swap',
+  weight: "500"
 });
 
 export default function RootLayout({
@@ -20,7 +15,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="ja" className={`${geistSans.variable} ${geistMono.variable}`}>
+    <html lang="ja" className={mPlusRounded1c.className}>
       <body>
         <div className="mx-auto w-full px-6 xs:px-7 sm:px-10 max-w-screen-md mt-9">
           {children}

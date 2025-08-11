@@ -6,7 +6,7 @@ const AdryFooter = () => {
                 className="text-center text-5 mt-20 text-gray-400"
                 style={{ fontSize: '0.65rem' }}
             >
-                ©2024-2025 ardririy / Hayana Nakagawa
+                Copyright Since 2024 (C) ardririy / Hayana Nakagawa
             </div>
         </div>
     )

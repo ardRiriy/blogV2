@@ -12,7 +12,7 @@ export default async function ArticleList({ page }: { page: number }) {
                     <FadeIn delay={delaySize * i} key={i}>
                         <Link href={`/article/${elm.url}`}>
                             <div key={elm.id} className="mb-6 flex">
-                                <div className="w-1 bg-gray-700 mr-4">
+                                <div className="w-1 bg-accent mr-4"> 
                                 </div>
                                 <div className="flex flex-col">
                                     <h2 className="text-xl font-medium text-gray-800">{elm.title}</h2>
