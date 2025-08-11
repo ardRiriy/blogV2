@@ -41,6 +41,7 @@ async fn fetch(req: Request, env: Env, ctx: Context) -> Result<Response> {
         .get_async("/", root)
         .get_async("/articles/:url_suffix", get_article_by_url_suffix)
         .get_async("/articles", get_articles_list)
+        .post_async("/articles", save_article)
         .run(req, env)
         .await
 }
@@ -130,4 +131,120 @@ pub async fn get_articles_list(req: Request, ctx: RouteContext<()>) -> Result<Re
     };
     
     Response::from_json(&response)
+}
+
+#[derive(Debug, serde::Deserialize)]
+struct SaveArticleRequest {
+    title: String,
+    content: String,
+    url_suffix: String,
+    tags: Vec<String>, // 配列で受け取る
+    created_at: Option<String>, 
+    updated_at: Option<String>,
+}
+
+pub async fn save_article(mut req: Request, ctx: RouteContext<()>) -> Result<Response> {
+    let article_request: SaveArticleRequest = req.json().await?;
+    
+    console_log!("Saving article: {:?}", article_request);
+    
+    // tagsを配列から,区切り文字列に変換
+    let tags_string = article_request.tags.join(",");
+    
+    let d1 = ctx.env.d1("DB")?;
+    
+    // url_suffixで既存記事を検索
+    let existing_check = d1.prepare("SELECT id FROM Articles WHERE url_suffix = ?");
+    let existing_result = existing_check
+        .bind(&[article_request.url_suffix.clone().into()])?
+        .first::<serde_json::Value>(None)
+        .await?;
+    
+    let result = match existing_result {
+        // 既存記事がある場合は更新
+        Some(_) => {
+            let mut set_clauses = vec!["title = ?", "content = ?", "tags = ?"];
+            let mut bind_values = vec![
+                article_request.title.into(),
+                article_request.content.into(),
+                tags_string.into(),
+            ];
+            
+            if let Some(created_at) = article_request.created_at {
+                console_log!("Setting created_at to: {}", created_at);
+                set_clauses.push("created_at = ?");
+                bind_values.push(created_at.into());
+            }
+            
+            if let Some(updated_at) = article_request.updated_at {
+                console_log!("Setting updated_at to: {}", updated_at);
+                set_clauses.push("updated_at = ?");
+                bind_values.push(updated_at.into());
+            }
+            
+            let query = format!(
+                "UPDATE Articles SET {} WHERE url_suffix = ? RETURNING *",
+                set_clauses.join(", ")
+            );
+            
+            bind_values.push(article_request.url_suffix.into());
+            
+            let statement = d1.prepare(&query);
+            statement.bind(&bind_values)?.first::<Article>(None).await?
+        },
+        // 新規作成
+        None => {
+            let (query, bind_values) = if article_request.created_at.is_some() || article_request.updated_at.is_some() {
+                let mut columns = vec!["title", "content", "url_suffix", "tags"];
+                let mut placeholders = vec!["?", "?", "?", "?"];
+                let mut values = vec![
+                    article_request.title.into(),
+                    article_request.content.into(),
+                    article_request.url_suffix.into(),
+                    tags_string.into(),
+                ];
+                
+                if let Some(created_at) = article_request.created_at {
+                    console_log!("Setting created_at to: {}", created_at);
+                    columns.push("created_at");
+                    placeholders.push("?");
+                    values.push(created_at.into());
+                }
+                
+                if let Some(updated_at) = article_request.updated_at {
+                    console_log!("Setting updated_at to: {}", updated_at);
+                    columns.push("updated_at");
+                    placeholders.push("?");
+                    values.push(updated_at.into());
+                }
+                
+                let query = format!(
+                    "INSERT INTO Articles ({}) VALUES ({}) RETURNING *",
+                    columns.join(", "),
+                    placeholders.join(", ")
+                );
+                
+                (query, values)
+            } else {
+                let query = "INSERT INTO Articles (title, content, url_suffix, tags) VALUES (?, ?, ?, ?) RETURNING *".to_string();
+                let values = vec![
+                    article_request.title.into(),
+                    article_request.content.into(),
+                    article_request.url_suffix.into(),
+                    tags_string.into(),
+                ];
+                (query, values)
+            };
+            
+            let statement = d1.prepare(&query);
+            statement.bind(&bind_values)?.first::<Article>(None).await?
+        }
+    };
+    
+    match result {
+        Some(article) => {
+            Response::from_json(&article)
+        },
+        None => Response::error("Failed to save article", 500),
+    }
 }
