@@ -2,6 +2,9 @@ use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
 use worker::*;
 
+mod format;
+use format::naive_date_time_format;
+
 #[derive(Debug, Deserialize, serde::Serialize)]
 struct Article {
     id: u32,
@@ -27,28 +30,6 @@ struct ArticleSummary {
     updated_at: NaiveDateTime,
 }
 
-mod naive_date_time_format {
-    use chrono::NaiveDateTime;
-    use serde::{self, Deserialize, Deserializer, Serializer};
-
-    const FORMAT: &str = "%Y-%m-%d %H:%M:%S";
-
-    pub fn serialize<S>(date: &NaiveDateTime, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        let s = format!("{}", date.format(FORMAT));
-        serializer.serialize_str(&s)
-    }
-
-    pub fn deserialize<'de, D>(deserializer: D) -> Result<NaiveDateTime, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        let s = String::deserialize(deserializer)?;
-        NaiveDateTime::parse_from_str(&s, FORMAT).map_err(serde::de::Error::custom)
-    }
-}
 
 #[event(fetch)]
 async fn fetch(req: Request, env: Env, ctx: Context) -> Result<Response> {
