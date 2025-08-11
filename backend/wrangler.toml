@@ -4,3 +4,8 @@ compatibility_date = "2025-07-24"
 
 [build]
 command = "cargo install -q worker-build && worker-build --release"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "blog"
+database_id = "2ca2406e-ce38-498c-a21c-b5efdb51d937"
