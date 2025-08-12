@@ -1,5 +1,4 @@
 import { MetadataRoute } from 'next'
-import { env } from 'process'
  
 export default function robots(): MetadataRoute.Robots {
   return {
@@ -7,6 +6,6 @@ export default function robots(): MetadataRoute.Robots {
       userAgent: '*',
       allow: '/',
     },
-    sitemap: `${env.PUBLISH_URL}/sitemap.xml`,
+    sitemap: `${process.env.PUBLISH_URL}/sitemap.xml`,
   }
 }

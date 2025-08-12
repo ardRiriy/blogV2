@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import ArticleList from "@/components/articleList";
 import { Separator } from "@/components/ui/separator"
 import { randomInt } from "crypto";
-import SimpleLoading from "@/components/loading";
+import StylishLoading from "@/components/loading";
 
 function welcomeMessage(): String {
     const hour = new Date().getHours();
