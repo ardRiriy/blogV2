@@ -1,4 +1,5 @@
 import FadeIn from "@/components/fadein";
+import StylishLoading from "@/components/loading";
 import MarkdownRenderer from "@/components/MarkdownRenderer";
 import { getArticle } from "@/lib/api";
 import Link from "next/link";
@@ -34,7 +35,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
     const { id } = await params;
 
     return (
-        <Suspense fallback={<></>}>
+        <Suspense fallback={<StylishLoading />}>
             <Article id={id} />
             <Link href={'/list'}>
                 <div className="text-center text-5 mt-20 text-gray-400">
