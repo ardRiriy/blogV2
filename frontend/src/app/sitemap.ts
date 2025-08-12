@@ -14,7 +14,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ]
   
   const dynamicPages: MetadataRoute.Sitemap = posts.map((post) => ({
-    url: `${process.env.PUBLISH_URL}/posts/${post.url_suffix}`,
+    url: `${process.env.PUBLISH_URL}/articles/${post.url_suffix}`,
     lastModified: new Date(post.date),
   }))
   

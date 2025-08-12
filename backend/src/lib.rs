@@ -40,6 +40,7 @@ async fn fetch(req: Request, env: Env, _ctx: Context) -> Result<Response> {
     router
         .get_async("/articles/:url_suffix", get_article_by_url_suffix)
         .get_async("/articles", get_articles_list)
+        .get_async("/articles/all", get_all_content)
         .post_async("/articles", save_article)
         .run(req, env)
         .await
@@ -68,6 +69,18 @@ pub async fn get_article_by_url_suffix(_req: Request, ctx: RouteContext<()>) -> 
             Response::error("Article not found", 404)
         }
     }
+}
+
+pub async fn get_all_content(_req: Request, ctx: RouteContext<()>) -> Result<Response> {
+    let d1 = ctx.env.d1("DB")?;
+    
+    // 全記事のcontentを取得
+    let statement = d1.prepare("SELECT * FROM Articles");
+    let results = statement.all().await?;
+    
+    let articles: Vec<Article> = results.results::<Article>()?.into_iter().collect();
+    
+    Response::from_json(&articles)
 }
 
 pub async fn get_articles_list(req: Request, ctx: RouteContext<()>) -> Result<Response> {
