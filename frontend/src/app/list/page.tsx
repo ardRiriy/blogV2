@@ -32,7 +32,7 @@ export default async function Page({
     const params = await searchParams;
     const currentPageNumber = params.page ? parseInt(params.page, 10) : 1;
     return (
-        <Suspense fallback={<SimpleLoading />}>
+        <Suspense fallback={<StylishLoading />}>
             <h2 className="text-center text-xl my-3">{welcomeMessage()}</h2>
             <h4 className="text-center text-md"> ardririyの足跡 </h4>
             <Separator className="my-15" />
