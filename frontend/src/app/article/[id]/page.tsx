@@ -45,3 +45,13 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
         </Suspense>
     )
 }
+
+// metadata
+export async function generateMetadata({ params }: ArticlePageProps) {
+    const { id } = await params;
+    const article = await getArticle(id);
+    return {
+        title: article.title,
+        description: article.content.slice(0, 100),
+    };
+}
