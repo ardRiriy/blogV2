@@ -9,11 +9,6 @@ import { atomDark } from 'react-syntax-highlighter/dist/cjs/styles/prism';
 import { visit } from 'unist-util-visit';
 import { Node } from 'unist';
 
-interface WikiLinkNode extends Node {
-    type: 'wikiLink';
-    value: string;
-}
-
 function remarkWikiLink() {
   return (tree: Node) => {
     visit(tree, 'text', (node: any, index, parent: any) => {

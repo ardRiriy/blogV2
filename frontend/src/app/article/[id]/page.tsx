@@ -6,9 +6,9 @@ import Link from "next/link";
 import { Suspense } from "react";
 
 interface ArticlePageProps {
-    params: {
+    params: Promise<{
         id: string;
-    };
+    }>;
 }
 
 async function Article({ id }: { id: string }) {
@@ -46,7 +46,6 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
     )
 }
 
-// metadata
 export async function generateMetadata({ params }: ArticlePageProps) {
     const { id } = await params;
     const article = await getArticle(id);

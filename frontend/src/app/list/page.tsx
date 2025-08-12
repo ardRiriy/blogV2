@@ -4,7 +4,7 @@ import { Separator } from "@/components/ui/separator"
 import { randomInt } from "crypto";
 import StylishLoading from "@/components/loading";
 
-function welcomeMessage(): String {
+function welcomeMessage(): string {
     const hour = new Date().getHours();
     let timeGreet = "";
     if (hour >= 5 && hour < 12) {
