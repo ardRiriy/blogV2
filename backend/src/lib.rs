@@ -30,18 +30,18 @@ struct ArticleSummary {
     updated_at: NaiveDateTime,
 }
 
-
 #[event(fetch)]
 async fn fetch(req: Request, env: Env, _ctx: Context) -> Result<Response> {
     console_error_panic_hook::set_once();
-    
+
     let router = Router::new();
-    
+
     router
         .get_async("/articles/:url_suffix", get_article_by_url_suffix)
         .get_async("/articles", get_articles_list)
         .get_async("/articles/all", get_all_content)
         .post_async("/articles", save_article)
+        .delete_async("/articles/:url_suffix", delete_article)
         .run(req, env)
         .await
 }
@@ -53,17 +53,18 @@ pub async fn get_article_by_url_suffix(_req: Request, ctx: RouteContext<()>) -> 
         None => return Response::error("Missing url_suffix parameter", 400),
     };
     console_log!("url_suffix: {}", url_suffix);
-    
+
     let d1 = ctx.env.d1("DB")?;
-    
+
     // url_suffixで記事を検索
     let statement = d1.prepare("SELECT * FROM Articles WHERE url_suffix = ?");
-    let result = statement.bind(&[url_suffix.into()])?.first::<Article>(None).await?;
-    
+    let result = statement
+        .bind(&[url_suffix.into()])?
+        .first::<Article>(None)
+        .await?;
+
     match result {
-        Some(article) => {
-            Response::from_json(&article)
-        },
+        Some(article) => Response::from_json(&article),
         None => {
             // 記事が見つからない場合、404を返却
             Response::error("Article not found", 404)
@@ -73,13 +74,13 @@ pub async fn get_article_by_url_suffix(_req: Request, ctx: RouteContext<()>) -> 
 
 pub async fn get_all_content(_req: Request, ctx: RouteContext<()>) -> Result<Response> {
     let d1 = ctx.env.d1("DB")?;
-    
+
     // 全記事のcontentを取得
     let statement = d1.prepare("SELECT * FROM Articles");
     let results = statement.all().await?;
-    
+
     let articles: Vec<Article> = results.results::<Article>()?.into_iter().collect();
-    
+
     Response::from_json(&articles)
 }
 
@@ -90,12 +91,12 @@ pub async fn get_articles_list(req: Request, ctx: RouteContext<()>) -> Result<Re
         .find(|(key, _)| key == "page")
         .and_then(|(_, value)| value.parse::<u32>().ok())
         .unwrap_or(1);
-    
+
     let page = if page < 1 { 1 } else { page };
     let offset = (page - 1) * 20;
-    
+
     let d1 = ctx.env.d1("DB")?;
-    
+
     // 総記事数を取得
     let count_statement = d1.prepare("SELECT COUNT(*) as count FROM Articles");
     let count_result = count_statement.first::<serde_json::Value>(None).await?;
@@ -104,21 +105,18 @@ pub async fn get_articles_list(req: Request, ctx: RouteContext<()>) -> Result<Re
         .and_then(|v| v.as_u64())
         .map(|v| v as u32)
         .unwrap_or(0);
-    
+
     // 記事一覧を取得（contentなし）
     let statement = d1.prepare(
-        "SELECT id, title, url_suffix, tags, created_at, updated_at 
-         FROM Articles 
-         ORDER BY updated_at DESC 
-         LIMIT 20 OFFSET ?"
+        "SELECT id, title, url_suffix, tags, created_at, updated_at
+         FROM Articles
+         ORDER BY updated_at DESC
+         LIMIT 20 OFFSET ?",
     );
     let results = statement.bind(&[offset.into()])?.all().await?;
-    
-    let articles: Vec<ArticleSummary> = results
-        .results::<ArticleSummary>()?
-        .into_iter()
-        .collect();
-    
+
+    let articles: Vec<ArticleSummary> = results.results::<ArticleSummary>()?.into_iter().collect();
+
     #[derive(serde::Serialize)]
     struct ArticleListResponse {
         articles: Vec<ArticleSummary>,
@@ -127,9 +125,9 @@ pub async fn get_articles_list(req: Request, ctx: RouteContext<()>) -> Result<Re
         total_count: u32,
         total_pages: u32,
     }
-    
+
     let total_pages = (total_count + 19) / 20;
-    
+
     let response = ArticleListResponse {
         articles,
         page,
@@ -137,7 +135,7 @@ pub async fn get_articles_list(req: Request, ctx: RouteContext<()>) -> Result<Re
         total_count,
         total_pages,
     };
-    
+
     Response::from_json(&response)
 }
 
@@ -147,7 +145,7 @@ struct SaveArticleRequest {
     content: String,
     url_suffix: String,
     tags: Vec<String>, // 配列で受け取る
-    created_at: Option<String>, 
+    created_at: Option<String>,
     updated_at: Option<String>,
 }
 
@@ -156,7 +154,7 @@ pub async fn save_article(mut req: Request, ctx: RouteContext<()>) -> Result<Res
         Ok(token) => token.to_string(),
         Err(_) => return Response::error("Internal Server Error", 500),
     };
-    
+
     let auth = match req.headers().get("Authorization") {
         Ok(Some(value)) => value,
         _ => return Response::error("Unauthorized", 401),
@@ -168,21 +166,21 @@ pub async fn save_article(mut req: Request, ctx: RouteContext<()>) -> Result<Res
     }
 
     let article_request: SaveArticleRequest = req.json().await?;
- 
+
     console_log!("Saving article: {:?}", article_request);
-    
+
     // tagsを配列から,区切り文字列に変換
     let tags_string = article_request.tags.join(",");
-    
+
     let d1 = ctx.env.d1("DB")?;
-    
+
     // url_suffixで既存記事を検索
     let existing_check = d1.prepare("SELECT id FROM Articles WHERE url_suffix = ?");
     let existing_result = existing_check
         .bind(&[article_request.url_suffix.clone().into()])?
         .first::<serde_json::Value>(None)
         .await?;
-    
+
     let result = match existing_result {
         // 既存記事がある場合は更新
         Some(_) => {
@@ -192,32 +190,34 @@ pub async fn save_article(mut req: Request, ctx: RouteContext<()>) -> Result<Res
                 article_request.content.into(),
                 tags_string.into(),
             ];
-            
+
             if let Some(created_at) = article_request.created_at {
                 console_log!("Setting created_at to: {}", created_at);
                 set_clauses.push("created_at = ?");
                 bind_values.push(created_at.into());
             }
-            
+
             if let Some(updated_at) = article_request.updated_at {
                 console_log!("Setting updated_at to: {}", updated_at);
                 set_clauses.push("updated_at = ?");
                 bind_values.push(updated_at.into());
             }
-            
+
             let query = format!(
                 "UPDATE Articles SET {} WHERE url_suffix = ? RETURNING *",
                 set_clauses.join(", ")
             );
-            
+
             bind_values.push(article_request.url_suffix.into());
-            
+
             let statement = d1.prepare(&query);
             statement.bind(&bind_values)?.first::<Article>(None).await?
-        },
+        }
         // 新規作成
         None => {
-            let (query, bind_values) = if article_request.created_at.is_some() || article_request.updated_at.is_some() {
+            let (query, bind_values) = if article_request.created_at.is_some()
+                || article_request.updated_at.is_some()
+            {
                 let mut columns = vec!["title", "content", "url_suffix", "tags"];
                 let mut placeholders = vec!["?", "?", "?", "?"];
                 let mut values = vec![
@@ -226,27 +226,27 @@ pub async fn save_article(mut req: Request, ctx: RouteContext<()>) -> Result<Res
                     article_request.url_suffix.into(),
                     tags_string.into(),
                 ];
-                
+
                 if let Some(created_at) = article_request.created_at {
                     console_log!("Setting created_at to: {}", created_at);
                     columns.push("created_at");
                     placeholders.push("?");
                     values.push(created_at.into());
                 }
-                
+
                 if let Some(updated_at) = article_request.updated_at {
                     console_log!("Setting updated_at to: {}", updated_at);
                     columns.push("updated_at");
                     placeholders.push("?");
                     values.push(updated_at.into());
                 }
-                
+
                 let query = format!(
                     "INSERT INTO Articles ({}) VALUES ({}) RETURNING *",
                     columns.join(", "),
                     placeholders.join(", ")
                 );
-                
+
                 (query, values)
             } else {
                 let query = "INSERT INTO Articles (title, content, url_suffix, tags) VALUES (?, ?, ?, ?) RETURNING *".to_string();
@@ -258,16 +258,45 @@ pub async fn save_article(mut req: Request, ctx: RouteContext<()>) -> Result<Res
                 ];
                 (query, values)
             };
-            
+
             let statement = d1.prepare(&query);
             statement.bind(&bind_values)?.first::<Article>(None).await?
         }
     };
-    
+
     match result {
-        Some(article) => {
-            Response::from_json(&article)
-        },
+        Some(article) => Response::from_json(&article),
         None => Response::error("Failed to save article", 500),
     }
+}
+
+pub async fn delete_article(req: Request, ctx: RouteContext<()>) -> Result<Response> {
+    let token = match ctx.env.secret("TOKEN") {
+        Ok(token) => token.to_string(),
+        Err(_) => return Response::error("Internal Server Error", 500),
+    };
+
+    let auth = match req.headers().get("Authorization") {
+        Ok(Some(value)) => value,
+        _ => return Response::error("Unauthorized", 401),
+    };
+
+    let auth_token = auth.trim_start_matches("Bearer ");
+    if auth_token != token {
+        return Response::error("Unauthorized", 401);
+    }
+
+    let url_suffix = match ctx.param("url_suffix") {
+        Some(suffix) => suffix,
+        None => return Response::error("Missing url_suffix parameter", 400),
+    };
+
+    console_log!("Deleting article with suffix: {}", url_suffix);
+
+    let d1 = ctx.env.d1("DB")?;
+
+    let statement = d1.prepare("DELETE FROM Articles WHERE url_suffix = ?");
+    let _result = statement.bind(&[url_suffix.into()])?.run().await?;
+
+    Response::ok("Article deleted successfully")
 }
