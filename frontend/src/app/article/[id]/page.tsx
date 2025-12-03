@@ -21,7 +21,13 @@ async function Article({ id }: { id: string }) {
                     <h1 className="text-center">{article.title}</h1>
                 </FadeIn>
                 <FadeIn delay={150}>
-                    <p className="text-center">{new Date(article.date).toLocaleDateString()}</p>
+                    <p className="text-center">
+                        {new Date(article.date).toLocaleDateString("ja-JP", {
+                            year: "numeric",
+                            month: "2-digit",
+                            day: "2-digit",
+                        })}
+                    </p>
                 </FadeIn>
                 <FadeIn delay={300}>
                     <MarkdownRenderer content={article.content} />
@@ -37,13 +43,13 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
     return (
         <Suspense fallback={<StylishLoading />}>
             <Article id={id} />
-            <Link href={'/list'}>
+            <Link href={"/list"}>
                 <div className="text-center text-5 mt-20 text-gray-400">
                     記事一覧へ
                 </div>
             </Link>
         </Suspense>
-    )
+    );
 }
 
 export async function generateMetadata({ params }: ArticlePageProps) {
