@@ -1,0 +1,25 @@
+{
+	"name": "notion-to-md-proxy",
+	"version": "0.0.0",
+	"private": true,
+	"scripts": {
+		"deploy": "wrangler deploy",
+		"dev": "wrangler dev",
+		"start": "wrangler dev",
+		"test": "vitest",
+		"cf-typegen": "wrangler types"
+	},
+	"devDependencies": {
+		"@cloudflare/vitest-pool-workers": "^0.8.19",
+		"typescript": "^5.5.2",
+		"vitest": "~3.2.0",
+		"wrangler": "^4.51.0"
+	},
+	"dependencies": {
+		"@jsquash/jpeg": "^1.6.0",
+		"@jsquash/png": "^3.1.1",
+		"@jsquash/webp": "^1.5.0",
+		"@notionhq/client": "^5.4.0",
+		"notion-to-md": "^3.1.9"
+	}
+}

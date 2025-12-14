@@ -1,0 +1,36 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "notion-to-md-proxy",
+	"main": "src/index.ts",
+	"compatibility_date": "2025-12-02",
+	"observability": {
+		"enabled": true,
+	},
+	"dev": {
+		"port": 3001,
+	},
+	"r2_buckets": [
+		{
+			"bucket_name": "blog-images",
+			"binding": "MY_BUCKET",
+			"remote": true,
+		},
+	],
+	"rules": [
+		{
+			"type": "CompiledWasm",
+			"globs": ["**/*.wasm"],
+			"fallthrough": true,
+		},
+	],
+	"services": [
+		{
+			"binding": "RUST",
+			"service": "backend",
+		},
+	],
+	"vars": {
+		"PUBLIC_IMAGE_BASE_URL": "https://img.ardririy.net",
+		"RUST_BACKEND_URL": "https://backend.adry.workers.dev",
+	},
+}
