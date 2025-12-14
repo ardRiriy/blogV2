@@ -8,7 +8,7 @@ type Props = {
 
 export const TwitterShareButton = ({ text, url_suffix }: Props) => {
   
-  const articleUrl = `${process.env.PUBLISH_URL}/articles/${url_suffix}`
+  const articleUrl = `${process.env.PUBLISH_URL}/article/${url_suffix}`
   const tweetText = `${text.trim()}\n${articleUrl}`;
 
   const shareUrl = new URL('https://twitter.com/intent/tweet');
