@@ -1,7 +1,9 @@
 import FadeIn from "@/components/fadein";
 import StylishLoading from "@/components/loading";
 import MarkdownRenderer from "@/components/MarkdownRenderer";
+import { TwitterShareButton } from "@/components/twitter";
 import { getArticle } from "@/lib/api";
+import { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 
@@ -32,6 +34,9 @@ async function Article({ id }: { id: string }) {
                 <FadeIn delay={300}>
                     <MarkdownRenderer content={article.content} />
                 </FadeIn>
+                <FadeIn delay={450}>
+                    <TwitterShareButton text={article.title + " | ardririyの足跡"} url_suffix={id} />
+                </FadeIn>
             </div>
         </div>
     );
@@ -52,11 +57,20 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
     );
 }
 
-export async function generateMetadata({ params }: ArticlePageProps) {
+export async function generateMetadata({ params }: ArticlePageProps): Promise<Metadata> {
     const { id } = await params;
     const article = await getArticle(id);
+    const description = article.content.slice(0, 100);
     return {
         title: article.title,
-        description: article.content.slice(0, 100),
+        description: description,
+        openGraph: {
+            title: article.title,
+            description: description,
+            url: `${process.env.PUBLISH_URL}/articles/${id}`,
+            siteName: 'ardririyの足跡',
+            locale: 'ja-JP',
+            type: 'article',
+        },
     };
 }
