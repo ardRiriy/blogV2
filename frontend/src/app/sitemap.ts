@@ -11,6 +11,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       url: `${process.env.PUBLISH_URL}/`,
       lastModified: new Date(),
     },
+    {
+      url: `${process.env.PUBLISH_URL}/list`,
+      lastModified: new Date(),
+    }
   ]
   
   const dynamicPages: MetadataRoute.Sitemap = posts.map((post) => ({

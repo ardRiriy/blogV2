@@ -10,11 +10,11 @@ const nextConfig: NextConfig = {
   },
   async redirects() {
     return [
-      {
-        source: '/',
-        destination: '/list',
-        permanent: true,      
-      },
+      //{
+      //  source: '/',
+      //  destination: '/list',
+      //  permanent: true,      
+      //},
     ]
   },
 };

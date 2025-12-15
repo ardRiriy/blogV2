@@ -3,6 +3,7 @@ import "./globals.css";
 import 'katex/dist/katex.min.css';
 import AdryFooter from "@/components/footer";
 import { Metadata } from "next";
+import { AdryHeader } from "@/components/adryHeader";
 const mPlusRounded1c = M_PLUS_Rounded_1c ({
   subsets: ["latin"],
   display: 'swap',
@@ -27,8 +28,8 @@ export default function RootLayout({
     <html lang="ja" className={`${mPlusRounded1c.className} bg-background`}>
       <body>
           <div className="mx-auto w-full px-6 xs:px-7 sm:px-10 max-w-screen-md mt-9">
+          <AdryHeader />
             {children}
-
           </div>
           <AdryFooter />
       </body>
